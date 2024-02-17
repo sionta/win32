@@ -1,0 +1,12 @@
+[submodule "npocmaka/batch.scripts"]
+	path = npocmaka/batch.scripts
+	url = https://github.com/npocmaka/batch.scripts.git
+[submodule "lukesampson/psutils"]
+	path = lukesampson/psutils
+	url = https://github.com/lukesampson/psutils.git
+[submodule "Sycnex/Windows10Debloater"]
+	path = Sycnex/Windows10Debloater
+	url = https://github.com/Sycnex/Windows10Debloater.git
+[submodule "massgravel/Microsoft-Activation-Scripts"]
+	path = massgravel/Microsoft-Activation-Scripts
+	url = https://github.com/massgravel/Microsoft-Activation-Scripts.git
