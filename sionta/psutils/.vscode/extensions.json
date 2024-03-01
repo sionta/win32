@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "ms-vscode.powershell",
+        "pspester.pester-test",
+        "usernamehw.errorlens",
+        "editorconfig.editorconfig"
+    ]
+}
