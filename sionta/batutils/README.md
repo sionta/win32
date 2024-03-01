@@ -1,7 +1,8 @@
 # My Utilities
 
 ```cmd
-git clone https://github.com/sionta/batch.scripts.git && cd batch.scripts\myutils
+git clone https://github.com/sionta/win32.git
+cd win32\sionta\batutils\tools
 ```
 
 ## Add to PATH
