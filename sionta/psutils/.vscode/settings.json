@@ -1,0 +1,6 @@
+{
+    "powershell.codeFormatting.preset": "OTBS",
+    "powershell.codeFormatting.autoCorrectAliases": true,
+    "powershell.codeFormatting.useCorrectCasing": true,
+    "powershell.pester.codeLens": false,
+}
