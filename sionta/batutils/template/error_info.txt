@@ -1,0 +1,16 @@
+In a batch script, you can check the errorlevel variable to determine the exit code of the last executed command. Typically, an exit code of 0 indicates success, and non-zero values indicate errors. Here's a basic list of some commonly used exit codes:
+
+0: Success
+1: General error
+2: Incorrect syntax
+3: Access denied
+4: Not enough memory
+5: Access code invalid
+6: Program invalid
+9: The environment is invalid
+10: The file name or extension is too long
+11: The file is not found
+15: The system cannot find the drive specified
+16: The directory cannot be removed
+17: The system cannot move the file to a different disk drive
+128: There is a syntax error in the script
