@@ -2,8 +2,8 @@
 
 ```bat
 :: clone repository
-git clone --recursive https://github.com/sionta/batutils.git
-cd batutils
+git clone --recursive https://github.com/sionta/win32.git
+cd win32
 
 :: init and update submodule
 test\submodule.bat
