@@ -86,14 +86,14 @@ for /f "tokens=*" %%A in ("%*") do (
             echo %~n0: Error - Invalid alias definition: %%A
             exit /b 1
         )
-        set "ALIAS=%%~B"
-        set "COMMAND=%%C"
+        set "ALIAS_NAME=%%~B"
+        set "ALIAS_COMMAND=%%C"
     )
 )
-call :del_alias "%ALIAS%"
+call :del_alias "%ALIAS_NAME%"
 if errorlevel 1 exit /b 1
-echo:%ALIAS%=%COMMAND%>>"%ALIASES%"
-doskey %ALIAS%=%COMMAND%
+echo:%ALIAS_NAME%=%ALIAS_COMMAND%>>"%ALIASES%"
+doskey %ALIAS_NAME%=%ALIAS_COMMAND%
 exit /b 0
 
 :: ***************************************************************
@@ -110,9 +110,9 @@ if "%~1"=="" (
 call :check_file "%ALIASES%" || exit /b 1
 (for /f "tokens=* delims= " %%A in ('type "%ALIASES%"') do (
     for /f "tokens=1 delims== " %%B in ("%%A") do (
-        if /i "%%~B"=="%~1" (doskey %%~B =) else (echo:%%A)
+        if /i "%%~B"=="%~1" (doskey %%~B =) else echo:%%A
     )
-)) 1>"%temp%\del_alias.tmp"
+))>"%temp%\del_alias.tmp"
 move /y "%temp%\del_alias.tmp" "%ALIASES%" >nul
 exit /b 0
 
