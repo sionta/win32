@@ -1,3 +1,11 @@
+:: SHIM.BAT: Copyright (c) 2019 Andre Attamimi
+:: License: MIT License (http://opensource.org/licenses/MIT)
+::
+:: SHIM.EXE: Copyright (c) 2019 Grégoire Geis
+:: Version: 1.2 - (2019-08-09)
+:: Source: https://github.com/71/scoop-better-shimexe
+:: SHA1: 5d210f892cf6476e2ee8a8cdb26ad9687745f7b0
+
 @echo off
 if "%~1"=="" goto :usage
 
@@ -7,115 +15,127 @@ setlocal enabledelayedexpansion
 if "%~1"=="" (
     goto :begin
 ) else if /i "%~1"=="/?" (
-    endlocal & goto :usage
+    goto :usage
 ) else if /i "%~1"=="/help" (
-    endlocal & goto :usage
+    goto :usage
 ) else if /i "%~1"=="/force" (
     set "force_create=1"
 ) else if /i "%~1"=="/f" (
     set "force_create=1"
 ) else if /i "%~1"=="/o" (
-    set "output_name=%~dpn2"
-    shift /1
+    if "%~2"=="" (
+        echo Error: No name specified.
+        exit /b 1
+    )
+    set "output_file=%~dpn2"
+    shift /2
 ) else if /i "%~1"=="/t" (
-    set "target_file=%~f2"
-    set "target_name=%~nx2"
-    shift /1
+    if "%~2"=="" (
+        echo Error: No file specified.
+        exit /b 1
+    ) else if not exist "%~f2" (
+        set "PATHS=.\;%~dp0;%~dp1;%~dp2;%PATH%"
+        set "EXTS=!PATHEXT:.=%~n2.!"
+        for %%I in (!EXTS!) do (
+            if not "%%~$PATHS:I"=="" (
+                set "target_file=%%~f$PATHS:I"
+                set "target_name=%%~n$PATHS:I"
+            )
+        )
+        if not defined target_file (
+            echo Error: File not found "%~f2".
+            exit /b 1
+        )
+    ) else if exist "%~f2\" (
+        echo Error: "%~f2" is a directory, not a file.
+        exit /b 1
+    ) else (
+        set "target_file=%~f2"
+        set "target_name=%~n2"
+    )
+    shift /2
 ) else if /i "%~1"=="/a" (
+    if "%~2"=="" (
+        echo Error: No args specified.
+        exit /b 1
+    )
     set "target_args=%~2"
-    shift /1
+    shift /2
 ) else (
-    echo %~n0: option '%1' is unknown
-    echo %~n0: try '%~nx0 /?' for more information.
-    goto :error
+    echo Error: Unknown option "%1". Try "%~nx0 /?" for usage information.
+    exit /b 1
 )
 shift /1
 goto :parse
 
-:error
-endlocal
-exit /b 1
-
-:begin
-if not defined target_file (
-    echo %~n0: Requires target file.
-    goto :error
-) else if not exist "%target_file%" (
-    for %%I in (%target_name%) do (
-        if not "%%~f$PATH:I"=="" (
-            set "target_file=%%~f$PATH:I"
-            goto :begin
-        )
-    )
-    echo %~n0: File not found '%target_file%'.
-    goto :error
-) else if not defined output_name (
-    echo %~n0: Requires output name.
-    goto :error
-) else if not defined force_create (
-    if exist "%output_name%.exe" (
-        echo %~n0: File already exist '%output_name%.exe'.
-        echo %~n0: Use option '/f' for force creation of new shim.
-        goto :error
-    )
-)
-
-set "shimexeSHA1=5d210f892cf6476e2ee8a8cdb26ad9687745f7b0"
-set "shimexeFile=%APPDATA%\shimexe\shim.exe"
-if not exist "%shimexeFile%" call :getShimExe "%shimexeFile%"
-if %errorlevel% neq 0 (endlocal & exit /b %errorlevel%)
-
-echo:path = %target_file%> "%output_name%.shim"
-echo:args = %target_args%>>"%output_name%.shim"
-copy /b /y "%shimexeFile%" "%output_name%.exe">nul 2>&1
-if %errorlevel% neq 0 (endlocal & exit /b %errorlevel%)
-
-echo Output file:
-echo path = %output_name%.exe
-echo shim = %output_name%.shim
-echo.
-echo Target file:
-type "%output_name%.shim"
-endlocal
-exit /b 0
-
 :usage
 echo:Usage: %~nx0 [option] [parameters ...]
-echo:  Create shims for Windows Store executables.
+echo:  Create shims for Windows executables.
 echo:
 echo:Parameters:
-echo:  /o OutputName   Base filename of the shim executable.
-echo:  /t TargetFile   Path to the wrapped application/script.
-echo:  /a TargetArgs   Additional arguments for target execution.
+echo:  /o ^<file^>   Save output to file.
+echo:  /t ^<file^>   Path to the target program.
+echo:  /a ^<args^>   Additional target arguments.
 echo:
 echo:Options:
-echo:  /f, /force      Force new shim creation, even if overwriting.
-echo:  /?, /help       Display this help message and exit.
+echo:  /f, /force  Force creation even if overwritten.
+echo:  /?, /help   Display this help message and exit.
+echo:
+echo:If file lacks absolute path, it'll be searched in PATH.
 echo:
 echo:Examples:
-echo:   %~nx0 /o="C:\bin\gs.exe" /t="C:\Git\cmd\git.exe" /a="status -u"
-echo:   %~nx0 /o=np /t=notepad.exe
+echo:  %~nx0 /o gs /t "%%ProgramFiles%%\Git\cmd\git.exe" /a "status -u"
+echo:  %~nx0 /o "D:\bin\np.exe" /t notepad.exe
 exit /b 0
 
-:getCommand
-if not "%~f$PATH:1"=="" exit /b 0
-echo Cannot found '%~f$PATH:1'.
-exit /b 1
+:begin
+set "shimexeFile=%APPDATA%\shimexe\shim.exe"
+if not exist "%shimexeFile%" call :getShimExe "%shimexeFile%"
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+if not defined output_file set "output_file=%cd%\%target_name%"
+
+if not defined force_create if exist "%output_file%.exe" (
+    echo Error: File "%output_file%.exe" already exists.
+    echo Use /f or /force option to force new shim creation.
+    exit /b 1
+)
+
+if /i "%output_file%.exe"=="%target_file%" (
+    echo Error: Output file must differ from "%target_file%".
+    exit /b 2
+)
+
+if /i "%output_file%.exe"=="%shimexeFile%" (
+    echo Error: Output file must differ from shim.exe.
+    exit /b 3
+)
+
+echo:path = %target_file%> "%output_file%.shim"
+echo:args = %target_args%>>"%output_file%.shim"
+copy /b /y "%shimexeFile%" "%output_file%.exe" >nul 2>&1
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo Output file:
+echo path = %output_file%.exe
+echo shim = %output_file%.shim
+echo.
+echo Target info:
+type "%output_file%.shim"
+exit /b 0
 
 :getShimExe
-call :getCommand curl.exe || exit /b %errorlevel%
 if not exist "%~dp1" mkdir "%~dp1"
-curl.exe -Ss -o "%~f1" -L "https://github.com/71/scoop-better-shimexe/releases/download/1.2/shim.exe"
-if %errorlevel% neq 0 call :decodeShimExe "%~f1"
+curl -SsLo "%~f1" "https://github.com/71/scoop-better-shimexe/releases/download/1.2/shim.exe"
+if %errorlevel% neq 0 call :b64ShimExe >"%~f1.b64" & certutil -f -decode "%~f1.b64" "%~f1"
+certutil -hashfile "%~f1" SHA1 | findstr /ic:"5d210f892cf6476e2ee8a8cdb26ad9687745f7b0"
+if %errorlevel% neq 0 (
+    echo Error: SHA-1 hash ^(5d210f892cf6476e2ee8a8cdb26ad9687745f7b0^) does not match the expected value.
+    echo Please verify the integrity of the downloaded file.
+)
 exit /b %errorlevel%
 
-:decodeShimExe
-call :getCommand certutil.exe || exit /b %errorlevel%
-call :encodeShimExe > "%~f1.b64"
-certutil.exe -f -decode "%~f1.b64" "%~f1" 1>nul
-exit /b %errorlevel%
-
-:encodeShimExe
+:b64ShimExe SHA1: 5d210f892cf6476e2ee8a8cdb26ad9687745f7b0
 @echo:-----BEGIN CERTIFICATE-----
 @echo:TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 @echo:AAAAAAAAAAAAAAAA8AAAAA4fug4AtAnNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5v
